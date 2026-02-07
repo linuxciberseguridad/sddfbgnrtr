@@ -1,0 +1,517 @@
+<!-- AlertViewer.xaml -->
+<Window x:Class="BWP.Enterprise.Agent.UI.AlertViewer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BWP.Enterprise.Agent.UI"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        mc:Ignorable="d"
+        Title="BWP Enterprise - Alert Viewer" 
+        Height="700" Width="1000"
+        WindowStartupLocation="CenterOwner"
+        Icon="/Assets/alert-icon.ico">
+    
+    <Window.Resources>
+        <Style x:Key="MetricCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        
+        <Style x:Key="MetricValueStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        
+        <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        
+        <Style x:Key="AlertGridRowStyle" TargetType="DataGridRow">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity}" Value="Critical">
+                    <Setter Property="Background" Value="#33000000"/>
+                    <Setter Property="BorderBrush" Value="#FF4444"/>
+                    <Setter Property="BorderThickness" Value="0,0,4,0"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="High">
+                    <Setter Property="Background" Value="#33220000"/>
+                    <Setter Property="BorderBrush" Value="#FF8800"/>
+                    <Setter Property="BorderThickness" Value="0,0,4,0"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <Grid Background="#1E1E1E">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#007ACC" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Image Source="/Assets/alert-icon-white.png" Width="32" Height="32" Margin="0,0,15,0"/>
+                    <TextBlock Text="ALERT VIEWER" 
+                               Foreground="White" 
+                               FontSize="20" 
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="(Últimos 7 días)" 
+                               Foreground="#CCCCCC" 
+                               FontSize="14"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="🔄 Refresh" 
+                            Style="{StaticResource FlatButtonStyle}"
+                            Command="{Binding RefreshCommand}"
+                            Margin="0,0,10,0"/>
+                    
+                    <Button Content="📤 Export" 
+                            Style="{StaticResource FlatButtonStyle}"
+                            Command="{Binding ExportCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel - Alert List and Metrics -->
+            <Grid Grid.Column="0" Margin="0,0,20,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Quick Metrics -->
+                <Border Grid.Row="0" Background="#252526" CornerRadius="8" Padding="15" Margin="0,0,0,20">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Total Alerts -->
+                        <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding TotalAlerts}" Style="{StaticResource MetricValueStyle}"/>
+                                <TextBlock Text="Total Alerts" Style="{StaticResource MetricLabelStyle}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Critical Alerts -->
+                        <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding CriticalAlerts}" 
+                                           Style="{StaticResource MetricValueStyle}"
+                                           Foreground="#FF4444"/>
+                                <TextBlock Text="Critical" Style="{StaticResource MetricLabelStyle}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- High Alerts -->
+                        <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding HighAlerts}" 
+                                           Style="{StaticResource MetricValueStyle}"
+                                           Foreground="#FF8800"/>
+                                <TextBlock Text="High" Style="{StaticResource MetricLabelStyle}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Medium Alerts -->
+                        <Border Grid.Column="3" Style="{StaticResource MetricCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding MediumAlerts}" 
+                                           Style="{StaticResource MetricValueStyle}"
+                                           Foreground="#FFCC00"/>
+                                <TextBlock Text="Medium" Style="{StaticResource MetricLabelStyle}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Low Alerts -->
+                        <Border Grid.Column="4" Style="{StaticResource MetricCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding LowAlerts}" 
+                                           Style="{StaticResource MetricValueStyle}"
+                                           Foreground="#4CAF50"/>
+                                <TextBlock Text="Low" Style="{StaticResource MetricLabelStyle}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+                
+                <!-- Alert List -->
+                <Border Grid.Row="1" Background="#252526" CornerRadius="8" Padding="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- List Header -->
+                        <Border Grid.Row="0" Background="#2D2D30" 
+                                CornerRadius="8,8,0,0" 
+                                Padding="15,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="120"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="Timestamp" 
+                                           Foreground="#CCCCCC" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="1" Text="Alert" 
+                                           Foreground="#CCCCCC" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="2" Text="Severity" 
+                                           Foreground="#CCCCCC" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="3" Text="Source" 
+                                           Foreground="#CCCCCC" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="4" Text="Status" 
+                                           Foreground="#CCCCCC" FontWeight="Bold"/>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Alert DataGrid -->
+                        <DataGrid Grid.Row="1" 
+                                  ItemsSource="{Binding Alerts}"
+                                  SelectedItem="{Binding SelectedAlert}"
+                                  SelectionMode="Single"
+                                  AutoGenerateColumns="False"
+                                  HeadersVisibility="None"
+                                  BorderThickness="0"
+                                  Background="Transparent"
+                                  RowStyle="{StaticResource AlertGridRowStyle}"
+                                  RowHeight="40"
+                                  SelectionChanged="OnAlertSelected">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Time" 
+                                                    Binding="{Binding Timestamp, StringFormat='MM/dd HH:mm'}"
+                                                    Width="120">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#CCCCCC"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                
+                                <DataGridTextColumn Header="Alert" 
+                                                    Binding="{Binding Title}"
+                                                    Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="TextWrapping" Value="NoWrap"/>
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                
+                                <DataGridTextColumn Header="Severity" 
+                                                    Binding="{Binding Severity}"
+                                                    Width="100">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Foreground">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource SeverityToColorConverter}">
+                                                        <Binding Path="Severity"/>
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                
+                                <DataGridTextColumn Header="Source" 
+                                                    Binding="{Binding Source}"
+                                                    Width="120">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#CCCCCC"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                
+                                <DataGridTextColumn Header="Status" 
+                                                    Binding="{Binding Status}"
+                                                    Width="120">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Foreground">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource StatusToColorConverter}">
+                                                        <Binding Path="Status"/>
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+            
+            <!-- Right Panel - Charts and Details -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="250"/>
+                    <RowDefinition Height="250"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Severity Distribution Chart -->
+                <Border Grid.Row="0" Background="#252526" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="SEVERITY DISTRIBUTION" 
+                                   Foreground="#CCCCCC" 
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,10"/>
+                        
+                        <lvc:PieChart Series="{Binding SeveritySeries}" 
+                                     Height="180"
+                                     LegendLocation="Right"
+                                     Hoverable="True"
+                                     DataTooltip="{x:Null}">
+                            <lvc:PieChart.ChartLegend>
+                                <lvc:DefaultLegend Foreground="White"/>
+                            </lvc:PieChart.ChartLegend>
+                        </lvc:PieChart>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Trend Chart -->
+                <Border Grid.Row="1" Background="#252526" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="TREND (LAST 7 DAYS)" 
+                                   Foreground="#CCCCCC" 
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,10"/>
+                        
+                        <lvc:CartesianChart Series="{Binding TrendSeries}" 
+                                           Height="180">
+                            <lvc:CartesianChart.AxisX>
+                                <lvc:Axis Title="Date" 
+                                          LabelsRotation="45"
+                                          Foreground="White">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator StrokeThickness="0.5" Stroke="#555555"/>
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisX>
+                            <lvc:CartesianChart.AxisY>
+                                <lvc:Axis Title="Alerts" 
+                                          Foreground="White">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator StrokeThickness="0.5" Stroke="#555555"/>
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisY>
+                        </lvc:CartesianChart>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Alert Details Panel -->
+                <Border x:Name="DetailsPanel" 
+                        Grid.Row="2" 
+                        Background="#252526" 
+                        CornerRadius="8" 
+                        Padding="15"
+                        Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="ALERT DETAILS" 
+                                       Foreground="#CCCCCC" 
+                                       FontWeight="Bold"/>
+                            <Button Content="✕" 
+                                    Style="{StaticResource IconButtonStyle}"
+                                    HorizontalAlignment="Right"
+                                    Click="OnCloseDetailsClick"/>
+                        </StackPanel>
+                        
+                        <!-- Alert Title -->
+                        <TextBlock x:Name="AlertTitle" 
+                                   Grid.Row="1" 
+                                   Foreground="White" 
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,15"/>
+                        
+                        <!-- Alert Metadata -->
+                        <Grid Grid.Row="2" Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="Severity: " 
+                                       Foreground="#888888"/>
+                            <TextBlock x:Name="AlertSeverity" 
+                                       Grid.Column="1" 
+                                       FontWeight="Bold"/>
+                            
+                            <TextBlock Grid.Column="2" Text="Status: " 
+                                       Foreground="#888888"
+                                       Margin="20,0,0,0"/>
+                            <TextBlock x:Name="AlertStatus" 
+                                       Grid.Column="3" 
+                                       FontWeight="Bold"/>
+                        </Grid>
+                        
+                        <!-- Alert Time and Source -->
+                        <Grid Grid.Row="3" Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="Time: " 
+                                       Foreground="#888888"/>
+                            <TextBlock x:Name="AlertTime" 
+                                       Grid.Column="1" 
+                                       Foreground="#CCCCCC"/>
+                            
+                            <TextBlock Grid.Column="2" Text="Source: " 
+                                       Foreground="#888888"
+                                       Margin="20,0,0,0"/>
+                            <TextBlock x:Name="AlertSource" 
+                                       Grid.Column="3" 
+                                       Foreground="#CCCCCC"/>
+                        </Grid>
+                        
+                        <!-- Alert Details -->
+                        <Border Grid.Row="4" 
+                                Background="#2D2D30" 
+                                CornerRadius="6" 
+                                Padding="10"
+                                Margin="0,0,0,15">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock x:Name="AlertDetails" 
+                                           Foreground="#CCCCCC" 
+                                           TextWrapping="Wrap"/>
+                            </ScrollViewer>
+                        </Border>
+                        
+                        <!-- Recommended Actions -->
+                        <StackPanel Grid.Row="5">
+                            <TextBlock Text="RECOMMENDED ACTIONS" 
+                                       Foreground="#CCCCCC" 
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,10"/>
+                            
+                            <ListView x:Name="RecommendedActions" 
+                                      Height="80"
+                                      Background="Transparent"
+                                      BorderThickness="0">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                                            <Ellipse Width="6" Height="6" Fill="#4CAF50" 
+                                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding}" 
+                                                       Foreground="#CCCCCC"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            
+                            <!-- Action Buttons -->
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Right"
+                                        Margin="0,15,0,0">
+                                <Button Content="✅ Acknowledge" 
+                                        Style="{StaticResource FlatButtonStyle}"
+                                        Click="OnAcknowledgeClick"
+                                        Margin="0,0,10,0"/>
+                                
+                                <Button Content="✔️ Resolve" 
+                                        Style="{StaticResource FlatButtonStyle}"
+                                        Click="OnResolveClick"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- No Selection Message -->
+                <Border Grid.Row="2" 
+                        Background="#252526" 
+                        CornerRadius="8" 
+                        Padding="40"
+                        Visibility="{Binding HasSelectedAlert, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}">
+                    <TextBlock Text="Select an alert to view details" 
+                               Foreground="#888888" 
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontStyle="Italic"/>
+                </Border>
+            </Grid>
+        </Grid>
+        
+        <!-- Loading Overlay -->
+        <Grid Grid.RowSpan="2" 
+              Background="#80000000" 
+              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" 
+                             Width="200" 
+                             Height="10"
+                             Margin="0,0,0,20"/>
+                <TextBlock Text="Loading alerts..." 
+                           Foreground="White" 
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
