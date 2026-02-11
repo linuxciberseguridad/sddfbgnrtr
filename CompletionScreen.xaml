@@ -1,0 +1,116 @@
+<Window x:Class="BWP.Enterprise.Installer.UI.CompletionScreen"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:BWP.Enterprise.Installer.UI"
+        mc:Ignorable="d"
+        Title="Instalación Completada" Height="450" Width="700"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" ResizeMode="NoResize"
+        AllowsTransparency="True" Background="Transparent">
+    
+    <Border Background="#F0F2F5" CornerRadius="15" BorderBrush="#0078D7" BorderThickness="1" Padding="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="2" Color="#80808080"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header con Logo y Título -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,20">
+                <TextBlock Text="✓" FontSize="48" FontWeight="Bold" Foreground="#28A745" Margin="0,0,10,0"/>
+                <TextBlock Text="BWP Enterprise Agent" FontSize="28" FontWeight="SemiBold" Foreground="#1E1E1E"/>
+            </StackPanel>
+
+            <!-- Contenido Principal: Verificación de Salud Post-Instalación -->
+            <Grid Grid.Row="1" Margin="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Columna Izquierda: Estado del Servicio -->
+                <Border Grid.Column="0" Background="White" CornerRadius="10" Padding="15" Margin="0,0,10,0">
+                    <StackPanel>
+                        <TextBlock Text="Estado del Servicio" FontSize="16" FontWeight="SemiBold" Foreground="#1E1E1E" Margin="0,0,0,15"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Ellipse Grid.Row="0" Grid.Column="0" Width="12" Height="12" Fill="{Binding ServiceHealth, Converter={StaticResource HealthToColorConverter}}" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ServiceStatusText}" VerticalAlignment="Center" Margin="0,5"/>
+                            
+                            <Ellipse Grid.Row="1" Grid.Column="0" Width="12" Height="12" Fill="{Binding SensorHealth, Converter={StaticResource HealthToColorConverter}}" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SensorStatusText}" VerticalAlignment="Center" Margin="0,5"/>
+                            
+                            <Ellipse Grid.Row="2" Grid.Column="0" Width="12" Height="12" Fill="{Binding CloudHealth, Converter={StaticResource HealthToColorConverter}}" Margin="0,5,10,5"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CloudStatusText}" VerticalAlignment="Center" Margin="0,5"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Columna Derecha: Resumen y Token -->
+                <Border Grid.Column="1" Background="White" CornerRadius="10" Padding="15" Margin="10,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Configuración del Endpoint" FontSize="16" FontWeight="SemiBold" Foreground="#1E1E1E" Margin="0,0,0,15"/>
+                        <TextBlock Text="Grupo asignado:" Foreground="#666666" FontSize="12"/>
+                        <TextBlock Text="{Binding AssignedGroup}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        
+                        <TextBlock Text="ID del Dispositivo:" Foreground="#666666" FontSize="12"/>
+                        <TextBox Text="{Binding DeviceId, Mode=OneWay}" IsReadOnly="True" Background="#F5F5F5" BorderThickness="0" FontFamily="Consolas" FontSize="11" Margin="0,0,0,10"/>
+                        
+                        <TextBlock Text="Token de autenticación:" Foreground="#666666" FontSize="12"/>
+                        <StackPanel Orientation="Horizontal">
+                            <PasswordBox x:Name="TokenPasswordBox" Password="{Binding AuthToken, Mode=OneWay}" IsEnabled="False" Background="#F5F5F5" Width="200"/>
+                            <Button Content="Copiar" Width="60" Height="25" Margin="5,0,0,0" Click="CopyToken_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            
+            <!-- Barra de progreso de verificación -->
+            <Border Grid.Row="2" Background="White" CornerRadius="10" Padding="15" Margin="20,10,20,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="{Binding VerificationMessage}" Foreground="#1E1E1E" Margin="0,0,0,5"/>
+                    <ProgressBar Grid.Row="1" Value="{Binding VerificationProgress}" Height="8" Foreground="#0078D7" Background="#E6E6E6"/>
+                </Grid>
+            </Border>
+
+            <!-- Botón Finalizar -->
+            <Button Grid.Row="2" Content="Finalizar e Iniciar Dashboard" 
+                    HorizontalAlignment="Right" 
+                    Padding="20,10" 
+                    Margin="0,20,20,20"
+                    Background="{Binding IsInstallationValid, Converter={StaticResource BoolToButtonColorConverter}}"
+                    Foreground="White"
+                    FontWeight="SemiBold"
+                    BorderThickness="0"
+                    Cursor="{Binding IsInstallationValid, Converter={StaticResource BoolToHandCursorConverter}}"
+                    IsEnabled="{Binding IsInstallationValid}"
+                    Click="FinishInstallation_Click">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="5"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </Grid>
+    </Border>
+</Window>

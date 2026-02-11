@@ -1,0 +1,175 @@
+<Window x:Class="BWP.Enterprise.Installer.UI.PermissionsScreen"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Title="Permisos y Configuración" Height="550" Width="700"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" ResizeMode="NoResize"
+        AllowsTransparency="True" Background="Transparent">
+
+    <Border Background="#F0F2F5" CornerRadius="15" BorderBrush="#0078D7" BorderThickness="1" Padding="25">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="2" Color="#80808080"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Título y Descripción -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                <TextBlock Text="Permisos y Configuración del Agente" 
+                           FontSize="22" FontWeight="SemiBold" Foreground="#1E1E1E"/>
+                <TextBlock Text="Revisa y ajusta los permisos necesarios para el correcto funcionamiento del agente de seguridad." 
+                           FontSize="12" Foreground="#666666" TextWrapping="Wrap" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- ScrollViewer para el contenido -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" 
+                          PanningMode="VerticalOnly" Margin="0,0,0,10">
+                <StackPanel>
+                    <!-- Sección: Nivel de Privilegio -->
+                    <Border Background="White" CornerRadius="10" Padding="20" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="🔐 Nivel de Privilegio" FontSize="16" FontWeight="SemiBold" Foreground="#1E1E1E"/>
+                            <TextBlock Text="El agente requiere acceso al kernel para monitoreo avanzado." 
+                                       Foreground="#666666" FontSize="11" Margin="0,5,0,15"/>
+                            
+                            <RadioButton GroupName="PrivilegeLevel" Content="Modo Kernel (Recomendado)" 
+                                         IsChecked="{Binding UseKernelMode}" 
+                                         FontWeight="SemiBold" Margin="0,5"/>
+                            <TextBlock Text="Máxima visibilidad. Detecta rootkits y malware sigiloso." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,10"/>
+                            
+                            <RadioButton GroupName="PrivilegeLevel" Content="Modo Usuario (Limitado)" 
+                                         IsChecked="{Binding UseUserMode}" Margin="0,5"/>
+                            <TextBlock Text="Monitoreo sin drivers kernel. Menor impacto pero funcionalidad reducida." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Sección: Componentes a Instalar -->
+                    <Border Background="White" CornerRadius="10" Padding="20" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="🧩 Componentes del Agente" FontSize="16" FontWeight="SemiBold" Foreground="#1E1E1E"/>
+                            <TextBlock Text="Selecciona los módulos a activar." 
+                                       Foreground="#666666" FontSize="11" Margin="0,5,0,15"/>
+                            
+                            <CheckBox Content="Monitor de Procesos (ProcessSensor)" 
+                                      IsChecked="{Binding InstallProcessSensor}" 
+                                      IsEnabled="{Binding KernelModeAvailable}"
+                                      Margin="0,5"/>
+                            <TextBlock Text="Detecta creación/terminación de procesos y cargas de DLL." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,5"/>
+                            
+                            <CheckBox Content="Monitor de Archivos (FileSystemSensor)" 
+                                      IsChecked="{Binding InstallFileSystemSensor}" 
+                                      IsEnabled="{Binding KernelModeAvailable}"
+                                      Margin="0,5"/>
+                            <TextBlock Text="Monitorea cambios en el sistema de archivos en tiempo real." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,5"/>
+                            
+                            <CheckBox Content="Monitor de Red (NetworkSensor)" 
+                                      IsChecked="{Binding InstallNetworkSensor}" 
+                                      Margin="0,5"/>
+                            <TextBlock Text="Captura conexiones TCP/UDP y consultas DNS." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,5"/>
+                            
+                            <CheckBox Content="Monitor de Registro (RegistrySensor)" 
+                                      IsChecked="{Binding InstallRegistrySensor}" 
+                                      IsEnabled="{Binding KernelModeAvailable}"
+                                      Margin="0,5"/>
+                            <TextBlock Text="Detecta cambios en claves de registro de Windows." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Sección: Políticas de Seguridad Local (Análisis del sistema) -->
+                    <Border Background="#FFF3E0" CornerRadius="10" Padding="20" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="🛡️ Análisis de Seguridad del Sistema" 
+                                       FontSize="16" FontWeight="SemiBold" Foreground="#BF360C"/>
+                            
+                            <ItemsControl ItemsSource="{Binding SecurityPoliciesAnalysis}" Margin="0,10,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <TextBlock Grid.Column="0" Text="{Binding Icon}" Margin="0,0,5,0"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Description}" 
+                                                       Foreground="#1E1E1E" TextWrapping="Wrap"/>
+                                            <Border Grid.Column="2" 
+                                                    Background="{Binding StatusColor}" 
+                                                    CornerRadius="3" Padding="5,2">
+                                                <TextBlock Text="{Binding StatusText}" 
+                                                           Foreground="White" FontSize="10"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <Button Content="Aplicar configuración recomendada" 
+                                    Margin="0,15,0,0"
+                                    HorizontalAlignment="Left"
+                                    Padding="10,5"
+                                    Background="#0288D1"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Click="ApplyRecommendedPolicies_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Sección: Consentimiento y Datos -->
+                    <Border Background="White" CornerRadius="10" Padding="20" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="📊 Telemetría y Mejora" FontSize="16" FontWeight="SemiBold" Foreground="#1E1E1E"/>
+                            
+                            <CheckBox Content="Enviar datos anónimos de rendimiento y uso" 
+                                      IsChecked="{Binding SendAnonymousTelemetry}" 
+                                      Margin="0,10,0,5"/>
+                            <TextBlock Text="Ayuda a mejorar BWP Enterprise compartiendo métricas anónimas de uso." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,0"/>
+                            
+                            <CheckBox Content="Habilitar modo de diagnóstico avanzado" 
+                                      IsChecked="{Binding EnableDiagnosticMode}" 
+                                      Margin="0,15,0,5"/>
+                            <TextBlock Text="Genera logs detallados para solución de problemas (uso en producción no recomendado)." 
+                                       Foreground="#666666" FontSize="11" Margin="20,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Botones -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <Button Content="Anterior" 
+                        Padding="20,8" 
+                        Margin="0,0,10,0"
+                        Background="#6C757D"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="BackButton_Click"/>
+                
+                <Button x:Name="InstallButton"
+                        Content="Instalar" 
+                        Padding="30,8"
+                        Background="{Binding IsConfigurationValid, Converter={StaticResource BoolToButtonColorConverter}}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        IsEnabled="{Binding IsConfigurationValid}"
+                        Click="InstallButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
